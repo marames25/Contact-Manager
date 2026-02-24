@@ -25,20 +25,6 @@ The app allows adding, editing, deleting, viewing, listing, searching, filtering
 
 ---
 
-## CLI Menu (Updated)
-
-1. **Add Contact**  
-2. **Edit Contact**  
-3. **Delete Contact**  
-4. **View Contact**  
-5. **List Contacts**  
-6. **Search Contacts**  
-7. **Filter Contacts by Date**  
-8. **Save Contacts**  
-9. **Exit**  
-
----
-
 ## Requirements
 
 - .NET 10.0 or above  
@@ -57,7 +43,7 @@ git clone https://github.com/marames25/Contact-Manager.git
 
 2. Navigate to the project folder
 ```bash
-cd Contact-Manager
+cd "your folder path"
 ```
 
 3. Build and run
