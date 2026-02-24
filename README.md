@@ -40,7 +40,7 @@ git clone https://github.com/marames25/Contact-Manager.git
 
 2. Navigate to the project folder
 ```bash
-cd ContactManagerCLI
+cd "your folder"
 ```
 
 3. Build and run
