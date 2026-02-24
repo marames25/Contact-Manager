@@ -10,12 +10,12 @@ namespace ContactManagerCLI.Storage
     {
         private readonly string _filePath;
 
-        public JsonStorage(string filePath = "contacts.json")
+        public JsonStorage(string filePath)
         {
             _filePath = filePath;
         }
 
-        public List<Contact> Load()
+        public List<Contact>? Load()
         {
             if (!File.Exists(_filePath))
                 return new List<Contact>();
@@ -23,19 +23,33 @@ namespace ContactManagerCLI.Storage
             try
             {
                 string json = File.ReadAllText(_filePath);
-                return JsonSerializer.Deserialize<List<Contact>>(json) ?? new List<Contact>();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                return JsonSerializer.Deserialize<List<Contact>>(json, options) ?? new List<Contact>();
             }
             catch
             {
-                Console.WriteLine("Warning: contacts.json is invalid. Starting with empty list.");
                 return new List<Contact>();
             }
         }
 
         public void Save(List<Contact> contacts)
         {
-            string json = JsonSerializer.Serialize(contacts, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_filePath, json);
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                string json = JsonSerializer.Serialize(contacts, options);
+                File.WriteAllText(_filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving contacts: {ex.Message}");
+            }
         }
     }
 }

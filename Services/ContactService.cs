@@ -12,37 +12,40 @@ namespace ContactManagerCLI.Services
     {
         private List<Contact> _contacts;
         private readonly IStorage _storage;
+        private int _nextId;
 
         public ContactService(IStorage storage)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _contacts = _storage.Load() ?? new List<Contact>();
+
+            _nextId = _contacts.Any() ? _contacts.Max(c => c.Id) + 1 : 1;
         }
 
-        #region Validations
+        // VALIDATION
         private void ValidateContact(Contact contact)
         {
             if (string.IsNullOrWhiteSpace(contact.Name))
-                throw new ArgumentException("Name cannot be empty.");
+                throw new Exception("Name cannot be empty.");
 
             if (string.IsNullOrWhiteSpace(contact.Phone))
-                throw new ArgumentException("Phone cannot be empty.");
+                throw new Exception("Phone cannot be empty.");
 
             if (string.IsNullOrWhiteSpace(contact.Email))
-                throw new ArgumentException("Email cannot be empty.");
+                throw new Exception("Email cannot be empty.");
 
             if (!IsValidEmail(contact.Email))
-                throw new ArgumentException("Email format is invalid.");
+                throw new Exception("Email format is invalid.");
 
             if (!IsValidPhone(contact.Phone))
-                throw new ArgumentException("Phone format is invalid.");
+                throw new Exception("Phone format is invalid.");
         }
 
         private bool IsValidEmail(string email)
         {
             try
             {
-                var addr = new MailAddress(email);
+                var addr = new MailAddress(email.Trim());
                 return addr.Address == email.Trim();
             }
             catch
@@ -55,61 +58,72 @@ namespace ContactManagerCLI.Services
         {
             return Regex.IsMatch(phone.Trim(), @"^\d{8,15}$");
         }
-        #endregion
 
-        #region Add / Edit / Delete
+        // ADD
         public void AddContact(Contact contact)
         {
             ValidateContact(contact);
 
-            // Trim email to avoid accidental duplicates
             contact.Email = contact.Email.Trim();
 
-            if (_contacts.Any(c => c.Email.Equals(contact.Email, StringComparison.OrdinalIgnoreCase)))
+            if (_contacts.Any(c =>
+                c.Email.Equals(contact.Email, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new Exception("A contact with this email already exists!");
             }
 
+            contact.Id = _nextId++;
             _contacts.Add(contact);
         }
 
-        public void EditContact(Guid id, string name, string phone, string email)
+        // EDIT 
+        public void EditContact(int id, string name, string phone, string email)
         {
             var contact = GetContactById(id);
             if (contact == null)
                 throw new Exception("Contact not found.");
 
-            // Update Email with duplicate check
             if (!string.IsNullOrWhiteSpace(email))
             {
-                string trimmedEmail = email.Trim();
-                if (_contacts.Any(c => c.Email.Equals(trimmedEmail, StringComparison.OrdinalIgnoreCase) && c.Id != id))
-                    throw new Exception("Another contact already has this email!");
-                if (!IsValidEmail(trimmedEmail))
+                email = email.Trim();
+
+                if (!IsValidEmail(email))
                     throw new Exception("Email format is invalid.");
-                contact.Email = trimmedEmail;
+
+                if (_contacts.Any(c =>
+                    c.Email.Equals(email, StringComparison.OrdinalIgnoreCase)
+                    && c.Id != id))
+                {
+                    throw new Exception("Another contact already has this email!");
+                }
+
+                contact.Email = email;
             }
 
-            // Update Name and Phone
-            if (!string.IsNullOrWhiteSpace(name)) contact.Name = name;
+            if (!string.IsNullOrWhiteSpace(name))
+                contact.Name = name;
+
             if (!string.IsNullOrWhiteSpace(phone))
             {
                 if (!IsValidPhone(phone))
                     throw new Exception("Phone format is invalid.");
+
                 contact.Phone = phone;
             }
         }
 
-        public void DeleteContact(Guid id)
+        // DELETE 
+        public void DeleteContact(int id)
         {
-            var c = _contacts.FirstOrDefault(x => x.Id == id);
-            if (c != null)
-                _contacts.Remove(c);
-        }
-        #endregion
+            var contact = GetContactById(id);
+            if (contact == null)
+                throw new Exception("Contact not found.");
 
-        #region Get / Search
-        public Contact? GetContactById(Guid id)
+            _contacts.Remove(contact);
+        }
+
+        // GET 
+        public Contact? GetContactById(int id)
         {
             return _contacts.FirstOrDefault(c => c.Id == id);
         }
@@ -119,6 +133,7 @@ namespace ContactManagerCLI.Services
             return _contacts;
         }
 
+        // SEARCH / FILTER 
         public List<Contact> SearchByField(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -126,20 +141,24 @@ namespace ContactManagerCLI.Services
 
             query = query.Trim();
 
-            return _contacts
-                .Where(c =>
-                    (!string.IsNullOrEmpty(c.Name) && c.Name.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(c.Phone) && c.Phone.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrEmpty(c.Email) && c.Email.Contains(query, StringComparison.OrdinalIgnoreCase))
-                ).ToList();
+            return _contacts.Where(c =>
+                c.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                c.Phone.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(query, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
         }
-        #endregion
 
-        #region Save
+        public List<Contact> FilterByDateRange(DateTime startDate, DateTime endDate)
+        {
+            return _contacts.Where(c => 
+                c.CreationDate >= startDate && c.CreationDate <= endDate
+            ).ToList();
+        }
+
+        // SAVE
         public void Save()
         {
             _storage.Save(_contacts);
         }
-        #endregion
     }
 }

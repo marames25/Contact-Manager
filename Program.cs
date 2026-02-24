@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ContactManagerCLI.Models;
 using ContactManagerCLI.Services;
 using ContactManagerCLI.Storage;
@@ -12,15 +12,16 @@ class Program
 
         while (true)
         {
-            Console.WriteLine("\n=== Contact Manager CLI ===");
+            Console.WriteLine("\n--- Contact Manager CLI ---");
             Console.WriteLine("1. Add Contact");
             Console.WriteLine("2. Edit Contact");
             Console.WriteLine("3. Delete Contact");
             Console.WriteLine("4. View Contact");
             Console.WriteLine("5. List Contacts");
             Console.WriteLine("6. Search Contacts");
-            Console.WriteLine("7. Save Contacts");
-            Console.WriteLine("8. Exit");
+            Console.WriteLine("7. Filter by Date");
+            Console.WriteLine("8. Save Contacts");
+            Console.WriteLine("9. Exit");
             Console.Write("Enter choice: ");
             string choice = Console.ReadLine()?.Trim() ?? "";
 
@@ -45,10 +46,13 @@ class Program
                     SearchContactsCLI(service);
                     break;
                 case "7":
+                    FilterContactsByDateCLI(service);
+                    break;
+                case "8":
                     service.Save();
                     Console.WriteLine("Contacts saved!");
                     break;
-                case "8":
+                case "9":
                     return;
                 default:
                     Console.WriteLine("Invalid choice.");
@@ -87,7 +91,7 @@ class Program
     {
         Console.Write("Enter Contact Id: ");
         string idStr = Console.ReadLine()?.Trim() ?? "";
-        if (!Guid.TryParse(idStr, out Guid id))
+        if (!int.TryParse(idStr, out int id))
         {
             Console.WriteLine("Invalid Id format.");
             return;
@@ -122,7 +126,7 @@ class Program
     {
         Console.Write("Enter Contact Id: ");
         string idStr = Console.ReadLine()?.Trim() ?? "";
-        if (!Guid.TryParse(idStr, out Guid id))
+        if (!int.TryParse(idStr, out int id))
         {
             Console.WriteLine("Invalid Id format.");
             return;
@@ -143,7 +147,7 @@ class Program
     {
         Console.Write("Enter Contact Id: ");
         string idStr = Console.ReadLine()?.Trim() ?? "";
-        if (!Guid.TryParse(idStr, out Guid id))
+        if (!int.TryParse(idStr, out int id))
         {
             Console.WriteLine("Invalid Id format.");
             return;
@@ -172,7 +176,7 @@ class Program
             return;
         }
 
-        Console.WriteLine($"\n=== All Contacts ({contacts.Count}) ===");
+        Console.WriteLine($"\n--- All Contacts ({contacts.Count}) ---");
         foreach (var c in contacts)
         {
             Console.WriteLine($"{c.Id} | {c.Name} | {c.Phone} | {c.Email} | {c.CreationDate}");
@@ -191,7 +195,42 @@ class Program
             return;
         }
 
-        Console.WriteLine($"\n=== Search Results ({results.Count}) ===");
+        Console.WriteLine($"\n--- Search Results ({results.Count}) ---");
+        foreach (var c in results)
+        {
+            Console.WriteLine($"{c.Id} | {c.Name} | {c.Phone} | {c.Email} | {c.CreationDate}");
+        }
+    }
+
+    static void FilterContactsByDateCLI(IContactService service)
+    {
+        Console.Write("Enter start date (yyyy-MM-dd): ");
+        string startStr = Console.ReadLine()?.Trim() ?? "";
+        Console.Write("Enter end date (yyyy-MM-dd): ");
+        string endStr = Console.ReadLine()?.Trim() ?? "";
+
+        if (!DateTime.TryParse(startStr, out DateTime startDate))
+        {
+            Console.WriteLine("Invalid start date format.");
+            return;
+        }
+
+        if (!DateTime.TryParse(endStr, out DateTime endDate))
+        {
+            Console.WriteLine("Invalid end date format.");
+            return;
+        }
+
+        endDate = endDate.Date.AddDays(1).AddSeconds(-1);
+
+        var results = service.FilterByDateRange(startDate, endDate);
+        if (results.Count == 0)
+        {
+            Console.WriteLine("No contacts found in the specified date range.");
+            return;
+        }
+
+        Console.WriteLine($"\n--- Filtered Contacts ({results.Count}) ---");
         foreach (var c in results)
         {
             Console.WriteLine($"{c.Id} | {c.Name} | {c.Phone} | {c.Email} | {c.CreationDate}");
