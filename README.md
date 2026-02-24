@@ -27,12 +27,25 @@ The app allows adding, editing, deleting, viewing, listing, searching, and savin
 
 - .NET 10.0 or above
 - Visual Studio Code or any C# IDE
+- JSON storage file is automatically created (`contacts.json`)
 
 ---
 
 ## How to Run
 
 1. Clone the repository:
-
 ```bash
 git clone https://github.com/marames25/Contact-Manager.git
+```
+
+2. Navigate to the project folder
+```bash
+cd ContactManagerCLI
+```
+
+3. Build and run
+```bash
+dotnet run
+```
+
+4. Follow the CLI menu to manage contacts
