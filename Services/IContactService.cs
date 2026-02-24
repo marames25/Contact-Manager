@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ContactManagerCLI.Models;
 
 namespace ContactManagerCLI.Services
@@ -11,8 +12,10 @@ namespace ContactManagerCLI.Services
         void DeleteContact(int id);
         Contact? GetContactById(int id);
         List<Contact> GetAllContacts();
-        List<Contact> SearchByField(string query); 
+        List<Contact> SearchByField(string query);
         List<Contact> FilterByDateRange(DateTime startDate, DateTime endDate);
-        void Save();
+
+        Task InitializeAsync();
+        Task SaveAsync();
     }
 }

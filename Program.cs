@@ -5,25 +5,20 @@ using ContactManagerCLI.Storage;
 
 class Program
 {
-    static void Main()
+     static async Task Main()
     {
         IStorage storage = new JsonStorage("contacts.json");
         IContactService service = new ContactService(storage);
 
+        await service.InitializeAsync();
+
         var contacts = service.GetAllContacts();
         Console.WriteLine("\n--- Loaded Contacts ---");
-        if (contacts.Count == 0)
-        {
-            Console.WriteLine("No contacts found.");
-        }
+        if (contacts.Count == 0) Console.WriteLine("No contacts found.");
         else
-        {
             foreach (var c in contacts)
-            {
                 Console.WriteLine($"{c.Id} | {c.Name} | {c.Phone} | {c.Email} | {c.CreationDate}");
-            }
-        }
-        
+
         while (true)
         {
             Console.WriteLine("\n--- Contact Manager CLI ---");
@@ -32,7 +27,7 @@ class Program
             Console.WriteLine("3. Delete Contact");
             Console.WriteLine("4. View Contact");
             Console.WriteLine("5. List Contacts");
-            Console.WriteLine("6. Search Contacts");
+            Console.WriteLine("6. Search Contacts (by Name, Phone, or Email)");
             Console.WriteLine("7. Filter by Date");
             Console.WriteLine("8. Save Contacts");
             Console.WriteLine("9. Exit");
@@ -41,36 +36,19 @@ class Program
 
             switch (choice)
             {
-                case "1":
-                    AddContactCLI(service);
-                    break;
-                case "2":
-                    EditContactCLI(service);
-                    break;
-                case "3":
-                    DeleteContactCLI(service);
-                    break;
-                case "4":
-                    ViewContactCLI(service);
-                    break;
-                case "5":
-                    ListContactsCLI(service);
-                    break;
-                case "6":
-                    SearchContactsCLI(service);
-                    break;
-                case "7":
-                    FilterContactsByDateCLI(service);
-                    break;
+                case "1": AddContactCLI(service); break;
+                case "2": EditContactCLI(service); break;
+                case "3": DeleteContactCLI(service); break;
+                case "4": ViewContactCLI(service); break;
+                case "5": ListContactsCLI(service); break;
+                case "6": SearchContactsCLI(service); break;
+                case "7": FilterContactsByDateCLI(service); break;
                 case "8":
-                    service.Save();
+                    await service.SaveAsync();
                     Console.WriteLine("Contacts saved!");
                     break;
-                case "9":
-                    return;
-                default:
-                    Console.WriteLine("Invalid choice.");
-                    break;
+                case "9": return;
+                default: Console.WriteLine("Invalid choice."); break;
             }
         }
     }
