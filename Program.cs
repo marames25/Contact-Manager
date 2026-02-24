@@ -10,6 +10,20 @@ class Program
         IStorage storage = new JsonStorage("contacts.json");
         IContactService service = new ContactService(storage);
 
+        var contacts = service.GetAllContacts();
+        Console.WriteLine("\n--- Loaded Contacts ---");
+        if (contacts.Count == 0)
+        {
+            Console.WriteLine("No contacts found.");
+        }
+        else
+        {
+            foreach (var c in contacts)
+            {
+                Console.WriteLine($"{c.Id} | {c.Name} | {c.Phone} | {c.Email} | {c.CreationDate}");
+            }
+        }
+        
         while (true)
         {
             Console.WriteLine("\n--- Contact Manager CLI ---");
