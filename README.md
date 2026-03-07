@@ -1,4 +1,4 @@
-# Microsoft Internship 2026 - Contact Manager CLI
+
 
 ## Overview
 This is a **Command Line Contact Manager** application built in **C#**, designed for the Microsoft Summer Internship 2026 project.  
